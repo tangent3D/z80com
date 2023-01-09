@@ -14,7 +14,7 @@ def main(argv=None):
     args = parser.parse_args(argv)
 
     try:
-        ser = serial.Serial(args.port, 115200, rtscts=True, write_timeout=1)
+        ser = serial.Serial(args.port, 115200, rtscts=True, write_timeout=0)
     except:
         print("Could not open " + args.port + ".")
         exit()
