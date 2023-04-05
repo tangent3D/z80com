@@ -14,16 +14,26 @@ def main(argv=None):
     args = parser.parse_args(argv)
 
     try:
-        ser = serial.Serial(args.port, 115200, rtscts=True, write_timeout=1)
+        ser = serial.Serial(args.port, 115200, rtscts=True, timeout=5, write_timeout=5)
     except:
         print("Could not open " + args.port + ".")
-        exit()
+        end()
 
     with open(args.file, 'rb') as fh:
-        ser.write(fh.read())
+        try:
+            ser.write(fh.read())
+        except:
+            print("Transfer failed.")
+            end()
+        print("Transfer complete.")
+        end()
 
+def end():
     time.sleep(0.25)
-    ser.close()
+    try:
+        ser.close()
+    except:
+        pass
     exit()
 
 if __name__ == "__main__":
