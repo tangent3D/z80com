@@ -8,10 +8,12 @@ def main(argv=None):
     parser = argparse.ArgumentParser(
         description="ph"
     )
-    parser.add_argument("--port", "-p", required=True, help="ph")
-    parser.add_argument("--file", "-f", required=False, metavar="FILE", help="ph")
-    parser.add_argument("--dump", "-d", required=False, help="ph", action='store_true')
-    parser.add_argument("--output", "-o", required=False, help="ph", default="dump.bin")
+    parser.add_argument("--port", "-p", required=True, help="Serial port, e.g. COM1, /dev/ttyS1, /dev/ttyUSB1.")
+    parser.add_argument("--timeout", "-t", required=False, help="Time to wait in seconds for reads/writes or for device to assert RTS.", type=int, default=3)
+    parser.add_argument("--file", "-f", required=False, metavar="FILE", help="Path to file to send to device.")
+    parser.add_argument("--dump", "-d", required=False, help="Wait for CTS and dump received serial data to binary file.", action='store_true')
+    parser.add_argument("--output", "-o", required=False, help="Desired name of output dump file.", default="dump.bin")
+    parser.add_argument("--length", "-l", required=False, help="Maximum amount of bytes to dump.", type=int, default=512)
 
     global args
     args = parser.parse_args(argv)
@@ -32,8 +34,8 @@ def main(argv=None):
     # Open port and dump received data to file
     if args.dump == True:
         openPort()
-        buffer = []
-        buffer = ser.read(65536)
+        buffer = [args.length]
+        buffer = ser.read(args.length)
         with open(args.output, 'wb') as fh:
             fh.write(buffer)
             print("Wrote " + str(len(buffer)) + " bytes to " + args.output + ".")
@@ -43,10 +45,10 @@ def main(argv=None):
 def openPort():
     global ser
     try:
-        ser = serial.Serial(args.port, 115200, rtscts=True, timeout=1, write_timeout=1)
+        ser = serial.Serial(args.port, 115200, rtscts=True, timeout=args.timeout, write_timeout=args.timeout)
 
         # Wait for ZF to assert RTS, exit if timeout
-        t = 3
+        t = args.timeout
         while (ser.cts != True):
             time.sleep(1)
             t -= 1
